@@ -130,7 +130,12 @@ func CreatePropertyTree(prop *Property, names []string, def string) *Property {
 		curr = curr.Children[len(curr.Children)-1]
 	}
 
-	curr.Contained = append(curr.Contained, names[len(names)-1]+": "+def)
+	if def == "" {
+		curr.Contained = append(curr.Contained, names[len(names)-1]+": \""+def+"\"")
+	} else {
+		curr.Contained = append(curr.Contained, names[len(names)-1]+": "+def)
+	}
+
 	return prop
 }
 

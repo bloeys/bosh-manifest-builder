@@ -1,1 +1,3 @@
 # bosh-manifest-builder
+
+A tool that reads your BOSH release and generates a template manifest for you. This helps both developers and users of BOSH releases, as developers can get up and running with their manifest very quickly, especially with larger releases. As for users, then this gives them the ability to quickly start deploying and using the BOSH release, in addition to allowing them to get a look at all the available properties for different jobs, instead of going through the different jobs.
