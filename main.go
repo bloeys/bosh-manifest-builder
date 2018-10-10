@@ -106,9 +106,9 @@ func GetJob(j Job) string {
 }
 
 func GetProp(s string, indentBase int, p *Property) string {
-	// if len(p.Children) == 0 && len(p.Contained) == 0 {
-	// 	return s + strings.Repeat(" ", indentBase) + p.Name + ":\n"
-	// }
+	if len(p.Children) == 0 && len(p.Contained) == 0 {
+		return s + strings.Repeat(" ", indentBase) + p.Name + "\n"
+	}
 
 	//Print property name
 	s = s + strings.Repeat(" ", indentBase) + p.Name + ":\n"
@@ -132,15 +132,15 @@ func CreatePropertyTree(prop *Property, names []string, def string) *Property {
 		prop = &Property{Name: names[0], Contained: []string{}, Children: []*Property{}}
 	}
 
-	// if len(names) == 1 {
-	// 	if def == "" {
-	// 	prop.Name="\""+prop.Name+"\""
-	// 	} else {
-	// 		prop.Name=prop.Name+
-	// 	}
-
-	// 	return prop
-	// }
+	//Special case for direct property
+	if len(names) == 1 {
+		if def == "" {
+			prop.Name = prop.Name + "\"" + "\""
+		} else {
+			prop.Name = prop.Name + ": " + def
+		}
+		return prop
+	}
 
 	curr := prop
 	for i := 1; i < len(names)-1; i++ {
