@@ -127,7 +127,13 @@ func CreatePropertyTree(prop *Property, names []string, def string) *Property {
 		if !HasProperty(curr.Children, names[i]) {
 			curr.Children = append(curr.Children, &Property{Name: names[i], Contained: []string{}, Children: nil})
 		}
-		curr = curr.Children[len(curr.Children)-1]
+
+		for j := 0; j < len(curr.Children); j++ {
+			if names[i] == curr.Children[j].Name {
+				curr = curr.Children[j]
+				break
+			}
+		}
 	}
 
 	if def == "" {
