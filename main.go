@@ -50,7 +50,7 @@ func main() {
 	ig := &InstanceGroup{Name: "MyName", Azs: []string{"z1"}, Instances: 1, VmType: "default", Stemcell: "default", Networks: []string{"{name: default}"}, Jobs: []Job{}}
 	dep := Deployment{Name: "MyDeployment", Groups: []*InstanceGroup{ig}}
 
-	path := "ceph-objectstorage-broker-boshrelease/jobs"
+	path := os.Args[1] + "/jobs"
 	jobsDir, _ := ioutil.ReadDir(path)
 	for i := 0; i < len(jobsDir); i++ {
 		specFile, _ := ioutil.ReadFile(path + "/" + jobsDir[i].Name() + "/spec")
