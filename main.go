@@ -99,19 +99,29 @@ func GetJob(j Job) string {
 
 	indentBase := 4
 	for _, v := range props {
-		for i := 0; i < len(v.Children); i++ {
-			indent := indentBase
+		s = GetProp(s, indentBase, v)
+	}
 
-			p := v.Children[i]
-			indent = indent + 2
-			s = s + strings.Repeat(" ", indent) + p.Name + ":\n"
+	return s
+}
 
-			indent = indent + 2
-			for i := 0; i < len(p.Contained); i++ {
-				s = s + strings.Repeat(" ", indent) + p.Contained[i] + "\n"
-			}
-			indent = indent - 2
-		}
+func GetProp(s string, indentBase int, p *Property) string {
+	// if len(p.Children) == 0 && len(p.Contained) == 0 {
+	// 	return s + strings.Repeat(" ", indentBase) + p.Name + ":\n"
+	// }
+
+	//Print property name
+	s = s + strings.Repeat(" ", indentBase) + p.Name + ":\n"
+
+	//Print properties directly under this one
+	indent := indentBase + 2
+	for i := 0; i < len(p.Contained); i++ {
+		s = s + strings.Repeat(" ", indent) + p.Contained[i] + "\n"
+	}
+	indent = indent - 2
+
+	for i := 0; i < len(p.Children); i++ {
+		s = GetProp(s, indentBase+2, p.Children[i])
 	}
 
 	return s
@@ -122,12 +132,23 @@ func CreatePropertyTree(prop *Property, names []string, def string) *Property {
 		prop = &Property{Name: names[0], Contained: []string{}, Children: []*Property{}}
 	}
 
+	// if len(names) == 1 {
+	// 	if def == "" {
+	// 	prop.Name="\""+prop.Name+"\""
+	// 	} else {
+	// 		prop.Name=prop.Name+
+	// 	}
+
+	// 	return prop
+	// }
+
 	curr := prop
 	for i := 1; i < len(names)-1; i++ {
 		if !HasProperty(curr.Children, names[i]) {
 			curr.Children = append(curr.Children, &Property{Name: names[i], Contained: []string{}, Children: nil})
 		}
 
+		//Select the child for this property
 		for j := 0; j < len(curr.Children); j++ {
 			if names[i] == curr.Children[j].Name {
 				curr = curr.Children[j]
@@ -136,6 +157,7 @@ func CreatePropertyTree(prop *Property, names []string, def string) *Property {
 		}
 	}
 
+	//Add quotes for empty values
 	if def == "" {
 		curr.Contained = append(curr.Contained, names[len(names)-1]+": \""+def+"\"")
 	} else {
