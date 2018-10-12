@@ -10,3 +10,9 @@
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+
+cf-rabbitmq-multitenant-broker-release/
+
+cf-redis-release/
+
+ceph-objectstorage-broker-boshrelease/

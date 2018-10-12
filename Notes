@@ -1,0 +1,9 @@
+* Helps devs of BOSH releases (e.g. Big BOSH releases)
+* Helps users (e.g. don't have to go through the 'spec'; Can get up and running quickly)
+* Integrates very well with 'bosh-gen'
+* A lot can still be done with this
+    * Some simple way of mapping instance groups with jobs
+    * Possibly more metadata in the spec to automate even more of the manifest creation (e.g. if the property is a list or a map)
+    * More features like not showing properties with default values
+    * Automatically read provides/consumes (links) from the spec
+    * Map releases to jobs

@@ -11,7 +11,7 @@ import (
 
 type JobSpecProperty struct {
 	Default string `yaml:"default,omitempty"`
-	Desc    string `yaml:"Description"`
+	Desc    string `yaml:"description"`
 }
 
 type JobSpec struct {
@@ -43,8 +43,13 @@ type Deployment struct {
 type Property struct {
 	Name      string
 	Children  []*Property
-	Contained []string
+	Contained []struct {
+		Name string
+		Desc string
+	}
 }
+
+var printDesc bool = len(os.Args) > 2 && os.Args[2] == "-d"
 
 func main() {
 	ig := &InstanceGroup{Name: "MyName", Azs: []string{"z1"}, Instances: 1, VmType: "default", Stemcell: "default", Networks: []string{"{name: default}"}, Jobs: []Job{}}
@@ -94,29 +99,28 @@ func GetJob(j Job) string {
 	s := "  - name: " + j.Name + "\n    release: " + j.Release + "\n    properties:\n"
 	for k, v := range j.Spec.Properties {
 		split := strings.Split(strings.Replace(k, ":", "", 1), ".")
-		props[split[0]] = CreatePropertyTree(props[split[0]], split, v.Default)
+		props[split[0]] = CreatePropertyTree(props[split[0]], split, v.Default, v.Desc)
 	}
 
 	indentBase := 4
 	for _, v := range props {
 		s = GetProp(s, indentBase, v)
 	}
-
 	return s
 }
 
 func GetProp(s string, indentBase int, p *Property) string {
-	if len(p.Children) == 0 && len(p.Contained) == 0 {
-		return s + strings.Repeat(" ", indentBase) + p.Name + "\n"
-	}
-
 	//Print property name
 	s = s + strings.Repeat(" ", indentBase) + p.Name + ":\n"
 
 	//Print properties directly under this one
 	indent := indentBase + 2
+	spaces := strings.Repeat(" ", indent)
 	for i := 0; i < len(p.Contained); i++ {
-		s = s + strings.Repeat(" ", indent) + p.Contained[i] + "\n"
+		if printDesc && p.Contained[i].Desc != "" {
+			s = strings.TrimSuffix(s+spaces+"#"+strings.Replace(p.Contained[i].Desc, "\n", "\n"+spaces+"#", -1), "\n"+spaces+"#") + "\n"
+		}
+		s = s + spaces + p.Contained[i].Name + "\n"
 	}
 	indent = indent - 2
 
@@ -127,28 +131,24 @@ func GetProp(s string, indentBase int, p *Property) string {
 	return s
 }
 
-func CreatePropertyTree(prop *Property, names []string, def string) *Property {
+func CreatePropertyTree(prop *Property, names []string, def string, desc string) *Property {
 	if prop == nil {
-		prop = &Property{Name: names[0], Contained: []string{}, Children: []*Property{}}
-	}
-
-	//Special case for direct property
-	if len(names) == 1 {
-		if def == "" {
-			prop.Name = prop.Name + "\"" + "\""
-		} else {
-			prop.Name = prop.Name + ": " + def
-		}
-		return prop
+		prop = &Property{Name: names[0], Contained: []struct {
+			Name string
+			Desc string
+		}{}, Children: []*Property{}}
 	}
 
 	curr := prop
 	for i := 1; i < len(names)-1; i++ {
 		if !HasProperty(curr.Children, names[i]) {
-			curr.Children = append(curr.Children, &Property{Name: names[i], Contained: []string{}, Children: nil})
+			curr.Children = append(curr.Children, &Property{Name: names[i], Contained: []struct {
+				Name string
+				Desc string
+			}{}, Children: nil})
 		}
 
-		//Select the child for this property
+		//Select the child for this property (order isn't guaranteed by the map iterator)
 		for j := 0; j < len(curr.Children); j++ {
 			if names[i] == curr.Children[j].Name {
 				curr = curr.Children[j]
@@ -159,9 +159,15 @@ func CreatePropertyTree(prop *Property, names []string, def string) *Property {
 
 	//Add quotes for empty values
 	if def == "" {
-		curr.Contained = append(curr.Contained, names[len(names)-1]+": \""+def+"\"")
+		curr.Contained = append(curr.Contained, struct {
+			Name string
+			Desc string
+		}{Name: names[len(names)-1] + ": \"" + def + "\"", Desc: desc})
 	} else {
-		curr.Contained = append(curr.Contained, names[len(names)-1]+": "+def)
+		curr.Contained = append(curr.Contained, struct {
+			Name string
+			Desc string
+		}{Name: names[len(names)-1] + ": " + def, Desc: desc})
 	}
 
 	return prop
